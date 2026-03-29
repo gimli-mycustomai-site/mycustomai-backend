@@ -1,9 +1,12 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+function getStripe() {
+  return require('stripe')(process.env.STRIPE_SECRET_KEY);
+}
 const { generateAndSendReport } = require('./pdf');
 
 // ── Stripe webhook handler ────────────────────────────────
 // Verifies payment completed, then triggers PDF generation
 async function verifyStripeWebhook(req, res) {
+  const stripe = getStripe();
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 

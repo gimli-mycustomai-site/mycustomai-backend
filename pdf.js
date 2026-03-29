@@ -2,8 +2,13 @@ const OpenAI   = require('openai');
 const { Resend } = require('resend');
 const PDFDocument = require('pdfkit');
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-init so env vars are loaded before clients are created
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 const TOOL_LABELS = {
   scheduling: 'Scheduling & Bookings',
@@ -70,6 +75,7 @@ WHAT TO AVOID
 
 Be specific, use plain language, no tech jargon. Write like a trusted local consultant.`;
 
+  const openai = getOpenAI();
   const completion = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],
@@ -199,6 +205,7 @@ async function sendReportEmail(data, pdfBuffer) {
   </div>
 </div>`;
 
+  const resend = getResend();
   await resend.emails.send({
     from: 'My Custom AI <reports@mycustomai.co>',
     to: data.email,
