@@ -4,7 +4,14 @@ const PDFDocument = require('pdfkit');
 
 // Lazy-init so env vars are loaded before clients are created
 function getOpenAI() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return new OpenAI({
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: 'https://openrouter.ai/api/v1',
+    defaultHeaders: {
+      'HTTP-Referer': 'https://mycustomai.co',
+      'X-Title': 'My Custom AI',
+    },
+  });
 }
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
@@ -77,7 +84,7 @@ Be specific, use plain language, no tech jargon. Write like a trusted local cons
 
   const openai = getOpenAI();
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'anthropic/claude-sonnet-4-6',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 2500,
     temperature: 0.7,
