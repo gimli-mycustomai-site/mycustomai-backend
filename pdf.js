@@ -214,7 +214,7 @@ async function sendReportEmail(data, pdfBuffer) {
 
   const resend = getResend();
   await resend.emails.send({
-    from: 'My Custom AI <reports@mycustomai.co>',
+    from: 'My Custom AI <reports@mail.mycustomai.co>',
     to: data.email,
     subject: `Your Custom AI Plan for ${data.bizName} is ready`,
     html: emailHtml,
