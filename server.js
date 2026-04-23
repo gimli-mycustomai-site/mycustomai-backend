@@ -21,9 +21,19 @@ app.use('/webhook/stripe', bodyParser.raw({ type: 'application/json' }));
 // ── JSON body for all other routes ────────────────────────
 app.use(bodyParser.json({ limit: '1mb' }));
 
-// ── Health check ──────────────────────────────────────────
+// ── Root ──────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.json({ status: 'ok', service: 'mycustomai-backend' });
+});
+
+// ── Health check (Render deploy gating + uptime monitoring) ─
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()),
+    service: 'mycustomai-backend'
+  });
 });
 
 // ── Submit intake form → generate + email PDF ─────────────
