@@ -7,7 +7,7 @@
 
 const https = require('https');
 
-const TELEGRAM_TOKEN   = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = '-1003937855108'; // Business Meetings channel
 
 function telegramSend(text) {
@@ -15,7 +15,7 @@ function telegramSend(text) {
     const payload = JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' });
     const req = https.request({
       hostname: 'api.telegram.org',
-      path:     `/bot${TELEGRAM_TOKEN}/sendMessage`,
+      path:     `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       method:   'POST',
       headers:  { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
     }, (res) => {
