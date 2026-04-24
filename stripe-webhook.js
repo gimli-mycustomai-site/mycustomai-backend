@@ -1,7 +1,6 @@
 function getStripe() {
   return require('stripe')(process.env.STRIPE_SECRET_KEY);
 }
-const { generateAndSendReport } = require('./pdf');
 const { sendPlaybookEmail }    = require('./playbook-pdf');
 
 // ── Stripe webhook handler ────────────────────────────────

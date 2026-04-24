@@ -2,7 +2,6 @@ require('dotenv').config();
 const express    = require('express');
 const cors       = require('cors');
 const bodyParser = require('body-parser');
-const { generateAndSendReport } = require('./pdf');
 const { verifyStripeWebhook }   = require('./stripe-webhook');
 const { handleTestimonial }     = require('./testimonials');
 
@@ -37,30 +36,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ── Submit intake form → generate + email PDF ─────────────
-// Called directly from intake.html after successful Stripe payment
-app.post('/api/submit', async (req, res) => {
-  try {
-    const data = req.body;
 
-    // Basic validation
-    if (!data.email || !data.bizName || !data.ownerName) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    console.log(`[submit] New intake: ${data.bizName} (${data.email}) — plan: ${data.plan || 'starter'}`);
-
-    // Fire and forget — don't make the user wait
-    generateAndSendReport(data).catch(err => {
-      console.error('[submit] PDF generation error:', err.message);
-    });
-
-    res.json({ success: true, message: 'Report is being generated. Check your email!' });
-  } catch (err) {
-    console.error('[submit] Error:', err.message);
-    res.status(500).json({ error: 'Something went wrong. Please try again.' });
-  }
-});
 
 // ── Stripe webhook → verify payment + trigger PDF ─────────
 app.post('/webhook/stripe', async (req, res) => {
