@@ -2,6 +2,7 @@ function getStripe() {
   return require('stripe')(process.env.STRIPE_SECRET_KEY);
 }
 const { generateAndSendReport } = require('./pdf');
+const { sendPlaybookEmail }    = require('./playbook-pdf');
 
 // ── Stripe webhook handler ────────────────────────────────
 // Verifies payment completed, then triggers PDF generation
@@ -39,6 +40,11 @@ async function verifyStripeWebhook(req, res) {
     // The webhook is just a payment verification backup.
     // Log the verified payment for our records.
     console.log(`[webhook] Verified payment from ${customerEmail} — plan: ${plan}`);
+
+    // Send the free In-House AI Playbook PDF on every purchase
+    sendPlaybookEmail(customerEmail, customerName).catch(err => {
+      console.error('[webhook] Playbook email error:', err.message);
+    });
   }
 
   res.json({ received: true });
