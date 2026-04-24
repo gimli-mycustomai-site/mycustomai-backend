@@ -4,6 +4,7 @@ const cors       = require('cors');
 const bodyParser = require('body-parser');
 const { generateAndSendReport } = require('./pdf');
 const { verifyStripeWebhook }   = require('./stripe-webhook');
+const { handleTestimonial }     = require('./testimonials');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -70,6 +71,9 @@ app.post('/webhook/stripe', async (req, res) => {
     res.status(400).send('Webhook error');
   }
 });
+
+// ── Submit testimonial → GitHub → live site ───────────────
+app.post('/api/testimonial', handleTestimonial);
 
 app.listen(PORT, () => {
   console.log(`mycustomai backend running on port ${PORT}`);
