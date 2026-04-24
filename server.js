@@ -4,6 +4,7 @@ const cors       = require('cors');
 const bodyParser = require('body-parser');
 const { verifyStripeWebhook }   = require('./stripe-webhook');
 const { handleTestimonial }     = require('./testimonials');
+const { handleAuditNotify }     = require('./audit-notify');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,9 @@ app.post('/webhook/stripe', async (req, res) => {
     res.status(400).send('Webhook error');
   }
 });
+
+// ── Audit form notify → Telegram Business Meetings ──────────
+app.post('/api/audit-notify', handleAuditNotify);
 
 // ── Submit testimonial → GitHub → live site ───────────────
 app.post('/api/testimonial', handleTestimonial);
