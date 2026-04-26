@@ -27,8 +27,18 @@ async function verifyStripeWebhook(req, res) {
     // Stripe passes customer_details and metadata from the session
     const customerEmail = session.customer_details?.email;
     const customerName  = session.customer_details?.name || '';
-    const plan = session.metadata?.plan || 
-      (session.amount_total === 70000 ? 'pro' : 'starter');
+    // Determine product type from amount or line items
+    let plan = session.metadata?.plan;
+    if (!plan) {
+      switch (session.amount_total) {
+        case 3700:   plan = 'pdf-only'; break;     // $37 PDF
+        case 100000: plan = 'quick-launch'; break; // $1,000
+        case 250000: plan = 'full-mastery'; break; // $2,500  
+        case 500000: plan = 'team-foundation'; break; // $5,000
+        case 1000000: plan = 'corporate'; break;   // $10,000
+        default:     plan = 'unknown'; break;
+      }
+    }
 
     if (!customerEmail) {
       console.error('[webhook] No email in session');
