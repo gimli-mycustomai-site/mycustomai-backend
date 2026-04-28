@@ -83,7 +83,11 @@ async function verifyStripeWebhook(req, res) {
       sendPackage3PDF(customerEmail, customerName).catch(err => {
         console.error('[webhook] Package3 email error:', err.message);
       });
-    } else if (isPackage4) {
+    }
+    } else if (priceId === 'price_1TR5J6FJIk3vLNeP4Yn6LSIm' || amountTotal === 14700) {
+      const { sendPackage8PDF } = require('./playbook-pdf');
+      await sendPackage8PDF(customerEmail, customerName);
+      console.log('[webhook] pkg8 sent'); else if (isPackage4) {
       sendPackage4PDF(customerEmail, customerName).catch(err => {
         console.error('[webhook] Package4 email error:', err.message);
       });

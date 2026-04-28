@@ -828,3 +828,21 @@ async function sendPackage7PDF(customerEmail, customerName) {
   console.log('[pkg7] Sent to ' + customerEmail);
 }
 module.exports = Object.assign(module.exports || {}, { sendPackage7PDF });
+
+async function sendPackage8PDF(customerEmail, customerName) {
+  const resend = getResend();
+  const fs = require('fs');
+  const path = require('path');
+  const pdfPath = path.join(__dirname, '../site/assets/package-8-team-training-kit.pdf');
+  const pdfBuffer = fs.readFileSync(pdfPath);
+  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your Team Training & Adoption Kit is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>Team Training & Adoption Kit</strong> is attached.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. (c) 2026 MyCustomAI | mycustomai.co</p></div>`;
+  await resend.emails.send({
+    from: 'MyCustomAI <noreply@mycustomai.co>',
+    to: customerEmail,
+    subject: 'Your Team Training & Adoption Kit - MyCustomAI',
+    html,
+    attachments: [{ filename: 'Team-Training-Adoption-Kit.pdf', content: pdfBuffer }]
+  });
+  console.log('[pkg8] Sent to ' + customerEmail);
+}
+module.exports = Object.assign(module.exports || {}, { sendPackage8PDF });
