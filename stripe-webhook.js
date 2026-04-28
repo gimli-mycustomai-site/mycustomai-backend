@@ -1,7 +1,7 @@
 function getStripe() {
   return require('stripe')(process.env.STRIPE_SECRET_KEY);
 }
-const { sendPlaybookEmail }    = require('./playbook-pdf');
+const { sendPlaybookEmail, sendPackage2PDF } = require('./playbook-pdf');
 
 // ── Stripe webhook handler ────────────────────────────────
 // Verifies payment completed, then triggers PDF generation
@@ -50,10 +50,22 @@ async function verifyStripeWebhook(req, res) {
     // Log the verified payment for our records.
     console.log(`[webhook] Verified payment from ${customerEmail} — plan: ${plan}`);
 
-    // Send the free In-House AI Playbook PDF on every purchase
-    sendPlaybookEmail(customerEmail, customerName).catch(err => {
-      console.error('[webhook] Playbook email error:', err.message);
-    });
+    // Detect if this is a Package 2 purchase by checking price ID in line items
+    const lineItems = session.line_items?.data || [];
+    const isPackage2 = lineItems.some(item => item.price?.id === 'price_1TR4CeFJIk3vLNePzYNf9HTa') ||
+                       session.metadata?.price_id === 'price_1TR4CeFJIk3vLNePzYNf9HTa' ||
+                       session.amount_total === 6700; // $67
+
+    if (isPackage2) {
+      sendPackage2PDF(customerEmail, customerName).catch(err => {
+        console.error('[webhook] Package2 email error:', err.message);
+      });
+    } else {
+      // Send the free In-House AI Playbook PDF on every other purchase
+      sendPlaybookEmail(customerEmail, customerName).catch(err => {
+        console.error('[webhook] Playbook email error:', err.message);
+      });
+    }
   }
 
   res.json({ received: true });

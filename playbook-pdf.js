@@ -133,14 +133,14 @@ async function buildPlaybookPDF(customerName) {
 
     // Subtitle
     doc.fillColor(INDIGO_LT).fontSize(13).font('Helvetica')
-       .text('How to Build, Run & Maintain Powerful AI Systems\nWithout Keeping Experts on Retainer', 50, 205);
+       .text('How to Build, Run & Maintain Powerful AI Systems\\nWithout Keeping Experts on Retainer', 50, 205);
 
     // Divider
     doc.rect(50, 250, 80, 2).fill(INDIGO);
 
     // Version + recipient
     doc.fillColor(TEXT_SOFT).fontSize(10).font('Helvetica')
-       .text('Version 2.0  ·  2026 Edition', 50, 270);
+       .text('Version 4.0  ·  2026 Edition', 50, 270);
     if (customerName) {
       doc.fillColor(WHITE).fontSize(10)
          .text(`Prepared for: ${customerName}`, 50, 290)
@@ -153,20 +153,21 @@ async function buildPlaybookPDF(customerName) {
     const toc = [
       '1. Executive Summary & The Reality Check',
       '2. How AI Actually Works in Business',
-      '3. Mastering Effective Interaction with AI',
-      '4. Critical Thinking & Debugging When AI Fails',
+      '3. Mastering Effective Interaction with AI – The #1 Skill',
+      '4. Critical Thinking & Debugging When AI Breaks',
       '5. Building Reliable AI Agents That Don\'t Hallucinate',
       '6. AI Tool Selection Guide – Best Tool for Each Job',
-      '7. Common Pitfalls & How to Avoid Them',
-      '8. Maintenance, Updates & Future-Proofing',
-      '9. 30-Day Implementation Roadmap & Templates',
-      '10. Measuring Success & Scaling',
+      '7. Open-Source Agent Deep Dive: Real Examples & Cost Strategy',
+      '8. Common Pitfalls & How to Avoid Them',
+      '9. Maintenance, Updates & Future-Proofing',
+      '10. 30-Day Implementation Roadmap & Templates',
+      '11. Measuring Success & Scaling',
       'Appendix: Prompt Library, Checklists & Resources',
     ];
     let tocY = 382;
     toc.forEach(item => {
-      doc.fillColor(TEXT_SOFT).fontSize(9).font('Helvetica').text(item, 50, tocY);
-      tocY += 16;
+      doc.fillColor(TEXT_SOFT).fontSize(8.5).font('Helvetica').text(item, 50, tocY);
+      tocY += 14;
     });
 
     // Bottom bar
@@ -188,39 +189,36 @@ async function buildPlaybookPDF(customerName) {
 
     sectionHeader(doc, '1. Executive Summary & The Reality Check');
 
-    body(doc, 'AI moves extremely fast. Companies that master it will outpace competitors in speed, cost, and output. However, unmanaged AI creates more problems than solutions: wasted time, bad decisions, hallucinations, security risks, and frustrated teams.');
+    body(doc, 'AI moves extremely fast. Companies that master it will outpace competitors. Poorly managed AI creates wasted time, hallucinations, and rising costs.');
 
     doc.moveDown(0.3);
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Key Truths (2026 Reality):');
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('2026 Key Truths:');
     doc.moveDown(0.2);
-    bullet(doc, 'AI is a powerful amplifier — not a replacement for human judgment.');
-    bullet(doc, 'You do not need technical experts on retainer, but you must learn structured interaction and debugging.');
-    bullet(doc, 'Starting now builds in-house capability before API costs skyrocket.');
-    bullet(doc, 'Open-source and agent frameworks are powerful but require regular maintenance and persistence.');
-    bullet(doc, 'Patience + structured processes = dramatic results.');
+    bullet(doc, 'AI amplifies human judgment — it does not replace it.');
+    bullet(doc, 'No technical experts needed on retainer if you follow structured processes.');
+    bullet(doc, 'Starting now builds in-house capability before API costs skyrocket due to data-center energy constraints.');
+    bullet(doc, 'Patience + structured interaction + open-source stacks = dramatic, sustainable results.');
 
-    callout(doc, 'Goal of this Playbook: Give your team a complete, self-contained system to build, run, and maintain AI agents independently.');
+    callout(doc, 'Goal: Give your team a self-contained system to build and run reliable AI agents independently.');
 
     sectionHeader(doc, '2. How AI Actually Works in Business (Capabilities vs Limitations)');
 
-    doc.fontSize(10.5).font('Helvetica-Bold').fillColor(ACCENT).text('What AI Excels At (2026):');
+    doc.fontSize(10.5).font('Helvetica-Bold').fillColor(ACCENT).text('Excels At:');
     doc.moveDown(0.2);
-    ['Research, data synthesis, and filtering at scale',
-     'Drafting content, code, emails, plans',
-     'Repetitive tasks, automation, and iteration',
-     'Bug fixing and refinement (with guidance)',
-     'Pattern spotting and rapid brainstorming'].forEach(t => bullet(doc, t));
+    ['Research, drafting, data filtering at scale',
+     'Repetitive automation, iteration, pattern spotting'].forEach(t => bullet(doc, t));
 
-    doc.moveDown(0.4);
-    doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#EF4444').text('What AI Still Cannot Do Well:');
+    doc.moveDown(0.3);
+    doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#EF4444').text('Cannot Do Well:');
     doc.moveDown(0.2);
-    ['True critical/strategic thinking in novel situations',
-     'Understanding your unique business context without explicit guidance',
-     'Consistent accuracy without verification layers',
-     'Long-term judgment or ethical nuance in ambiguous scenarios'].forEach(t => bullet(doc, t));
+    ['True critical/strategic thinking, novel creative problem-solving',
+     'Understanding your unique context without explicit guidance',
+     'Consistent accuracy without verification'].forEach(t => bullet(doc, t));
 
-    doc.moveDown(0.5);
-    callout(doc, 'Rule: Always keep critical thinking, final decisions, and high-stakes judgment on the human side.', '#EF4444');
+    doc.moveDown(0.3);
+    body(doc, 'Real-World Example: Grok suggested manual LinkedIn profile reviews. The winning approach: batch profiles + strict parameters (human strategy + AI scale execution).');
+
+    callout(doc, 'Rule: Keep critical thinking and final decisions human.', '#EF4444');
 
     // Page footer
     doc.fontSize(8).fillColor(TEXT_SOFT).font('Helvetica')
@@ -236,12 +234,9 @@ async function buildPlaybookPDF(customerName) {
 
     sectionHeader(doc, '3. Mastering Effective Interaction with AI – The #1 Skill');
 
-    body(doc, 'This single skill determines 80% of your success with AI. Most failures come not from bad tools, but from how people interact with them.');
-
     doc.moveDown(0.3);
     doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Core Rule — The No-Assumption Protocol');
     doc.moveDown(0.2);
-    body(doc, 'Embed this verbatim in every agent and prompt:');
 
     // Protocol callout box
     doc.moveDown(0.2);
@@ -249,29 +244,29 @@ async function buildPlaybookPDF(customerName) {
     doc.rect(50, pY, doc.page.width - 100, 52).fill('#EEF2FF');
     doc.rect(50, pY, 4, 52).fill(INDIGO);
     doc.fontSize(9.5).font('Helvetica-Oblique').fillColor(TEXT_DARK)
-       .text('"You are strictly forbidden from making any assumptions. If anything is unclear, missing, or ambiguous, ask specific clarifying questions until you have the complete picture. Never guess, infer, or proceed with incomplete information. Confirm understanding before acting."',
+       .text('"You are strictly forbidden from making any assumptions. If anything is unclear, ask specific clarifying questions until you have the complete picture. Never guess."',
              62, pY + 8, { width: doc.page.width - 124 });
     doc.moveDown(2.8);
 
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Proven Interaction Framework (Use Every Time):');
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Proven Interaction Framework (use every time):');
     doc.moveDown(0.3);
     [
       ['1. Role + Goal', '— Assign a clear role and objective.'],
-      ['2. Full Context', '— Provide all relevant background, constraints, and success criteria.'],
-      ['3. Examples', '— Give 1–2 examples of desired output (few-shot prompting).'],
-      ['4. Step-by-Step Thinking', '— Instruct: "Think step by step. Show your reasoning before the final answer."'],
-      ['5. Output Format', '— Specify exact format (tables, JSON, bullet points, etc.).'],
-      ['6. Verification', '— End with: "Before finalizing, self-check for assumptions, accuracy, and completeness."'],
+      ['2. Full Context & Constraints', '— Provide all relevant background and success criteria.'],
+      ['3. Examples (few-shot)', '— Give 1–2 examples of desired output.'],
+      ['4. "Think step by step. Show reasoning."', '— Force explicit reasoning before answers.'],
+      ['5. Exact Output Format', '— Specify format (tables, JSON, bullet points, etc.).'],
+      ['6. "Self-check for assumptions before finalizing."', '— Built-in verification step.'],
     ].forEach(([label, text]) => labelText(doc, label, text));
 
     doc.moveDown(0.5);
     doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Advanced Techniques:');
     doc.moveDown(0.2);
     bullet(doc, 'Iterative refinement: "Improve this by making it more [specific quality]. Here is what was missing…"');
-    bullet(doc, 'Cross-model checking: "Review this output from Claude/Grok and suggest improvements."');
-    bullet(doc, 'Temperature control: Use lower temperature (0.0–0.3) for factual/critical tasks in advanced setups.');
+    bullet(doc, 'Cross-model checking: "Review this output from Grok + Claude and suggest improvements."');
+    bullet(doc, 'Low temperature for facts, higher for creativity in advanced setups.');
 
-    callout(doc, 'How to Think When Using AI: Treat every AI like an extremely fast, overconfident junior employee who sometimes hallucinates facts. Your job = Strategy + Quality Control. AI\'s job = Fast execution + Research.');
+    callout(doc, 'How to Think: Treat AI like a fast, overconfident junior who sometimes hallucinates. You handle strategy; AI handles execution.');
 
     doc.fontSize(8).fillColor(TEXT_SOFT).font('Helvetica')
        .text('mycustomai.co  ·  Building AI In-House: The Complete Playbook', 50, doc.page.height - 30, { align: 'center', width: doc.page.width - 100 });
@@ -286,167 +281,157 @@ async function buildPlaybookPDF(customerName) {
 
     sectionHeader(doc, '4. Critical Thinking & Debugging When AI Breaks or Underperforms');
 
-    body(doc, 'This is the missing skill most people lack. When an agent hallucinates, loops, forgets context, or produces wrong output — use this systematic framework.');
-
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('The 4-Step Debugging Method:');
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('4-Step Debugging Method:');
     doc.moveDown(0.3);
 
     [
-      ['1. Reproduce Exactly', 'Capture: exact prompt, input data, expected output, actual output, and error logs.'],
-      ['2. Diagnose Root Cause', 'Prompt the AI: "Analyze step-by-step why this failed. What assumptions did you make? Where did the reasoning break?"'],
-      ['3. Fix with Minimal Change', '"Propose the smallest, safest change that fixes this. Show before/after. Explain root cause."'],
-      ['4. Verify Rigorously', '"Run 3–5 test cases. Self-check against requirements. Confirm it works in all scenarios."'],
+      ['1. Reproduce Exactly', 'Capture prompt, inputs, outputs, logs.'],
+      ['2. Diagnose Root Cause', 'Ask AI: "Analyze why this failed. What assumptions? Where did reasoning break?"'],
+      ['3. Fix Minimally', '"Propose the smallest safe change. Show before/after + root-cause explanation."'],
+      ['4. Verify Rigorously', 'Run 3–5 test cases. Confirm it works in all scenarios.'],
     ].forEach(([label, text]) => {
       doc.moveDown(0.2);
       labelText(doc, label, text);
     });
 
     doc.moveDown(0.4);
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Powerful Debugging Prompts (Copy-Paste Ready):');
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Copy-Paste Debugging Prompts:');
     doc.moveDown(0.2);
-    bullet(doc, '"List every assumption you are making before answering."');
-    bullet(doc, '"This output is incorrect because [explain exactly]. Fix it completely and explain the exact cause."');
-    bullet(doc, '"Act as a senior QA engineer. Find every possible flaw, edge case, or hallucination risk in this output."');
-    bullet(doc, '"Reproduce the error, then debug it like a senior developer would."');
+    bullet(doc, '"List every assumption you are making."');
+    bullet(doc, '"This output is incorrect because [exact issue]. Fix completely and explain the cause."');
+    bullet(doc, '"Act as senior QA: find every flaw, edge case, hallucination risk."');
 
-    callout(doc, 'Expect multiple rounds — 3–7+ iterations are normal. Document recurring issues in a shared "AI Lessons Learned" knowledge base. Use Claude for deep analysis, Grok for quick cross-checks.');
+    callout(doc, 'Mindset: Expect 3–7 iterations. Document lessons in a shared "AI Knowledge Base."');
 
     sectionHeader(doc, '5. Building Reliable AI Agents That Don\'t Hallucinate');
 
-    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Mandatory Agent Creation Workflow:');
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Mandatory Workflow:');
     doc.moveDown(0.3);
     [
-      '1. Primer Phase (Never skip) — "Research this topic thoroughly. List all common bugs, problems, and failure modes for [specific task]."',
-      '2. Embed the No-Assumption Protocol from Section 3.',
-      '3. Build Iteratively — Start small → Test → Feed back failures → Repeat.',
-      '4. Rigorous Testing — Run multiple test cases using the debugging method until clean every time.',
-      '5. Document & Maintain — Create a one-page instruction sheet + schedule monthly updates.',
+      'Primer Phase: "Research this topic thoroughly. Become an expert. List all common bugs, problems, best practices."',
+      'Embed No-Assumption Protocol.',
+      'Build small → Test → Feed back failures → Repeat until clean.',
+      'Document + schedule monthly updates (use Grok for latest info).',
     ].forEach(t => bullet(doc, t));
-
-    callout(doc, 'Pro Tip: Use Grok + recent YouTube/content for rapid updates on new AI developments before each major build.');
 
     doc.fontSize(8).fillColor(TEXT_SOFT).font('Helvetica')
        .text('mycustomai.co  ·  Building AI In-House: The Complete Playbook', 50, doc.page.height - 30, { align: 'center', width: doc.page.width - 100 });
 
     // ══════════════════════════════════════════════════════════
-    // PAGE 5 — Section 6 (Tool Selection)
+    // PAGE 5 — Section 6 & 7 (Tool Selection + Open Source)
     // ══════════════════════════════════════════════════════════
     doc.addPage({ background: OFF_WHITE });
     doc.rect(0, 0, doc.page.width, 6).fill(INDIGO);
-    doc.fillColor(NAVY).fontSize(22).font('Helvetica-Bold').text('Part 4: Tools & Pitfalls', 50, 30);
+    doc.fillColor(NAVY).fontSize(22).font('Helvetica-Bold').text('Part 4: Tools & Open-Source Strategy', 50, 30);
     doc.moveDown(0.5);
 
     sectionHeader(doc, '6. AI Tool Selection Guide – Best Tool for Each Job (2026)');
 
     doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Model Strengths:');
     doc.moveDown(0.3);
-    bullet(doc, 'Claude (Sonnet 4.x / Opus 4.x): Best for coding, debugging, complex reasoning, long-form structured work, professional writing, and careful analysis.');
-    bullet(doc, 'Grok: Best for real-time information, social media trends, X/Twitter data, current events, rapid prototyping, brainstorming, and speed.');
+    bullet(doc, 'Claude (Sonnet/Opus): Best for coding, debugging, complex reasoning, professional writing.');
+    bullet(doc, 'Grok: Best for real-time social/X data, trends, rapid prototyping, speed.');
 
     doc.moveDown(0.5);
-    doc._tableRowAlt = false;
-    tableRow(doc, 'Use Case', 'Best Tool(s)', 'Why It Wins', true);
-    [
-      ['Coding & Debugging',         'Claude',                    'Superior architecture, edge-case handling, long-horizon reasoning'],
-      ['Real-time Research',         'Grok',                      'Native X integration & live social data'],
-      ['Social Media / Leads',       'Grok',                      'Unmatched real-time social intelligence'],
-      ['Email & Copywriting',        'Claude + Omnisend/HubSpot', 'High-quality writing + execution'],
-      ['Accounting & Bookkeeping',   'QuickBooks AI / Zoho Zia',  'Specialized financial logic & compliance'],
-      ['Scheduling Automation',      'Motion, Reclaim.ai, Lindy', 'Intelligent time-blocking & calendar AI'],
-      ['Podcast / Audio Production', 'Claude + Descript/Castmagic', 'Scripting + editing pipeline'],
-      ['Lead Generation',            'Grok + Apollo.io / Clay',   'Data + execution'],
-      ['Workflow Automation',        'Zapier/Make + Claude/Grok', 'Orchestration layer'],
-      ['Data Analysis',              'Claude or Grok + Code',     'Strong reasoning + execution'],
-    ].forEach(([a, b, c]) => tableRow(doc, a, b, c));
+    callout(doc, 'Strategy: Route tasks to the model with the right strengths and combine them.');
 
-    callout(doc, 'Strategy: Never force one tool to do everything. Route tasks to the model with the right strengths and combine them.');
+    sectionHeader(doc, '7. Open-Source Agent Deep Dive: Real Examples & Cost Strategy');
 
-    sectionHeader(doc, '7. Common Pitfalls & How to Avoid Them');
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Best Open-Source Combos (2026):');
+    doc.moveDown(0.3);
+    bullet(doc, 'OpenClaw + Ollama + Qwen: Messaging gateway to agents. One-command setup.');
+    bullet(doc, 'Hermes Agent + Ollama + Qwen 3.5/3.6: Self-improving agent with 70+ skills, persistent memory.');
+    bullet(doc, 'Hybrid Stack: OpenClaw (messaging) + Hermes (brain) + local Qwen via Ollama.');
 
-    doc._tableRowAlt = false;
-    [
-      ['Hallucinations & confident falsehoods', 'No-Assumption Protocol + verification layers on every output'],
-      ['Assumptions baked into agents',         'Embed the protocol + always run the Primer Phase first'],
-      ['Over-reliance on one model',            'Multi-model routing + cross-check critical outputs'],
-      ['Expecting perfection first try',        'Plan for 3–7 iteration cycles — this is normal'],
-      ['Ignoring maintenance',                  'Schedule monthly "Update Sessions" — AI tools evolve fast'],
-      ['Context degradation / loops',           'Use the 4-step debugging method + implement persistent memory'],
-    ].forEach(([p, s]) => pitfallRow(doc, p, s));
+    doc.moveDown(0.4);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Why Build In-House:');
+    doc.moveDown(0.2);
+    body(doc, 'Data-center electricity use (~415 TWh in 2024) projected to double+ by 2030. Cloud API prices will climb sharply. Building in-house now locks in low costs.');
+
+    doc.moveDown(0.4);
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK).text('High-Impact Use Cases (Real 2026 Data):');
+    doc.moveDown(0.3);
+    bullet(doc, '24/7 Customer Service: Replaces Intercom/Zendesk ($2k-9k/mo) → $20-80/mo (90-95% savings)');
+    bullet(doc, 'Lead Generation: Replaces Apollo/Clay ($500-2k/mo) → $10-60/mo (85-95% savings)');
+    bullet(doc, 'Email Triage: Replaces Superhuman/VA ($300-1.5k/mo) → $0-30/mo (85-100% savings)');
+    bullet(doc, 'Social Media Automation: Replaces Buffer + writer ($200-1k/mo) → $0-50/mo (90%+ savings)');
+
+    callout(doc, 'Bottom Line: Most users report $300–$5,000+ monthly savings once first 2–3 agents are live.');
 
     doc.fontSize(8).fillColor(TEXT_SOFT).font('Helvetica')
        .text('mycustomai.co  ·  Building AI In-House: The Complete Playbook', 50, doc.page.height - 30, { align: 'center', width: doc.page.width - 100 });
 
     // ══════════════════════════════════════════════════════════
-    // PAGE 6 — Sections 8, 9, 10 + Appendix
+    // PAGE 6 — Sections 8, 9, 10, 11 + Appendix
     // ══════════════════════════════════════════════════════════
     doc.addPage({ background: OFF_WHITE });
     doc.rect(0, 0, doc.page.width, 6).fill(INDIGO);
-    doc.fillColor(NAVY).fontSize(22).font('Helvetica-Bold').text('Part 5: Roadmap, Scaling & Appendix', 50, 30);
+    doc.fillColor(NAVY).fontSize(22).font('Helvetica-Bold').text('Part 5: Implementation & Scaling', 50, 30);
     doc.moveDown(0.5);
 
-    sectionHeader(doc, '8. Maintenance, Updates & Future-Proofing');
-    bullet(doc, 'Open-source agents are powerful but need regular maintenance and feeding with new information.');
-    bullet(doc, 'Schedule monthly "Update Sessions" using Grok for latest developments.');
-    bullet(doc, 'Build a central company AI knowledge base — document every lesson learned.');
-    bullet(doc, 'Start in-house now — when costs rise, you\'ll already have the systems and the skills.');
+    sectionHeader(doc, '8. Common Pitfalls & How to Avoid Them');
+    [
+      ['Hallucinations & confident falsehoods', 'No-Assumption Protocol + verification layers'],
+      ['Assumptions baked into agents', 'Embed protocol + run Primer Phase first'],
+      ['Over-reliance on one model', 'Multi-model routing + cross-check outputs'],
+      ['Expecting perfection first try', 'Plan for 3–7 iteration cycles'],
+      ['Ignoring maintenance', 'Schedule monthly updates — AI evolves fast'],
+    ].forEach(([p, s]) => pitfallRow(doc, p, s));
 
-    sectionHeader(doc, '9. 30-Day Implementation Roadmap');
+    sectionHeader(doc, '9. Maintenance, Updates & Future-Proofing');
+    bullet(doc, 'Schedule monthly "Update Sessions" using Grok for latest developments.');
+    bullet(doc, 'Build a central AI knowledge base — document every lesson learned.');
+    bullet(doc, 'Start in-house now — when costs rise, you\'ll already have systems and skills.');
+
+    sectionHeader(doc, '10. 30-Day Implementation Roadmap');
     doc.moveDown(0.2);
     [
-      ['Week 1:', 'Team training on interaction + No-Assumption Protocol. Everyone reads Sections 3 and 4.'],
-      ['Week 2:', 'Build first 2 agents using the Primer Phase + Iterative method from Section 5.'],
-      ['Week 3:', 'Test, debug, document. Run all test cases. Build your "AI Lessons Learned" knowledge base.'],
-      ['Week 4:', 'Deploy, measure, plan next agents. Set up monthly maintenance schedule.'],
+      ['Week 1:', 'Train team on interaction + No-Assumption Protocol.'],
+      ['Week 2:', 'Install OpenClaw + Hermes via Ollama + first Qwen model. Build 2 agents.'],
+      ['Week 3:', 'Test, debug, document.'],
+      ['Week 4:', 'Deploy, measure, expand.'],
     ].forEach(([label, text]) => labelText(doc, label, text));
 
     doc.moveDown(0.4);
-    doc.fontSize(10.5).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Ready-to-Use Templates (in Appendix):');
+    doc.fontSize(10.5).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Templates:');
     doc.moveDown(0.2);
     ['Agent Creation Template', 'Primer Prompt', 'No-Assumption System Prompt',
-     'Iterative Bug-Fix Prompt', 'Agent Maintenance Checklist', 'ROI Tracking Sheet']
+     'Debugging Prompts', 'Maintenance Checklist', 'ROI Tracking Sheet']
       .forEach(t => bullet(doc, t));
 
-    sectionHeader(doc, '10. Measuring Success & Scaling');
+    sectionHeader(doc, '11. Measuring Success & Scaling');
     doc.fontSize(10.5).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Key Metrics:');
     doc.moveDown(0.2);
-    ['Time saved per task', 'Cost reduction vs. previous method', 'Accuracy rate after human review',
-     'Number of deployed agents', 'Team confidence score (survey monthly)'].forEach(t => bullet(doc, t));
+    ['Time saved per task', 'Cost reduction vs. previous method', 'Accuracy after review',
+     'Agents deployed', 'Team confidence score (monthly survey)'].forEach(t => bullet(doc, t));
 
     doc.moveDown(0.4);
-    callout(doc, 'Scaling Path: Start small → Core agents → Agent-building team → Full AI operating system.');
+    callout(doc, 'Scaling Path: Start small → Core agents → Full in-house AI operating system.');
 
     sectionHeader(doc, 'Appendix: Prompt Library');
 
     doc.fontSize(10.5).font('Helvetica-Bold').fillColor(TEXT_DARK).text('No-Assumption Protocol (paste into every agent):');
     doc.moveDown(0.2);
     const aY = doc.y;
-    doc.rect(50, aY, doc.page.width - 100, 44).fill('#EEF2FF');
-    doc.rect(50, aY, 4, 44).fill(INDIGO);
-    doc.fontSize(9).font('Courier').fillColor(TEXT_DARK)
-       .text('"You are strictly forbidden from making any assumptions. If anything is unclear, missing, or ambiguous, ask specific clarifying questions until you have the complete picture. Never guess, infer, or proceed with incomplete information."',
+    doc.rect(50, aY, doc.page.width - 100, 36).fill('#EEF2FF');
+    doc.rect(50, aY, 4, 36).fill(INDIGO);
+    doc.fontSize(8.5).font('Courier').fillColor(TEXT_DARK)
+       .text('"You are strictly forbidden from making assumptions. If unclear, ask specific questions until complete picture. Never guess."',
              62, aY + 7, { width: doc.page.width - 124 });
-    doc.moveDown(2.4);
+    doc.moveDown(2.2);
 
     doc.fontSize(10.5).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Primer Phase Prompt:');
     doc.moveDown(0.2);
     const bY = doc.y;
     doc.rect(50, bY, doc.page.width - 100, 30).fill('#F0FDF4');
     doc.rect(50, bY, 4, 30).fill(ACCENT);
-    doc.fontSize(9).font('Courier').fillColor(TEXT_DARK)
-       .text('"First, research this topic thoroughly. Become an expert. List all common bugs, problems, best practices, and failure modes people encounter when building [specific task]. Summarize key lessons learned."',
+    doc.fontSize(8.5).font('Courier').fillColor(TEXT_DARK)
+       .text('"Research this topic thoroughly. Become an expert. List all common bugs, problems, best practices."',
              62, bY + 7, { width: doc.page.width - 124 });
     doc.moveDown(1.8);
 
-    doc.fontSize(10.5).font('Helvetica-Bold').fillColor(TEXT_DARK).text('Monthly Maintenance Checklist:');
-    doc.moveDown(0.2);
-    ['Review all active agents for accuracy and outdated information',
-     'Use Grok to search for new developments in your AI tools',
-     'Re-test all critical workflows end-to-end',
-     'Update the "AI Lessons Learned" knowledge base',
-     'Check API costs and optimize where possible'].forEach((t, i) => {
-      doc.fontSize(9.5).font('Helvetica').fillColor(TEXT_MID)
-         .text(`☐  ${t}`, 58, doc.y, { lineGap: 3 });
-    });
+    doc.fontSize(8).fillColor(TEXT_SOFT).font('Helvetica')
+       .text('mycustomai.co  ·  Building AI In-House: The Complete Playbook', 50, doc.page.height - 30, { align: 'center', width: doc.page.width - 100 });
 
     // ══════════════════════════════════════════════════════════
     // FINAL PAGE — Encouragement + contact
@@ -460,11 +445,15 @@ async function buildPlaybookPDF(customerName) {
        .text('You Need.', 50, 158);
 
     doc.fillColor(INDIGO_LT).fontSize(13).font('Helvetica')
-       .text('Your AI will make mistakes — sometimes repeatedly.\nStay persistent with the iteration and debugging process.', 50, 210);
+       .text('Your AI will make mistakes — sometimes repeatedly.\\nStay persistent with iteration and the debugging process.', 50, 210);
 
     doc.moveDown(0.8);
     doc.fillColor(TEXT_SOFT).fontSize(11).font('Helvetica')
-       .text('The teams that win treat AI like a muscle: consistent training and refinement create massive strength. The playbook you\'ve just read is your foundation — use it, reference it, and build on it.', 50, doc.y, { width: doc.page.width - 100, lineGap: 5 });
+       .text('Teams that treat AI like a muscle (consistent training + open-source ownership) create massive, sustainable advantage — and huge cost savings.', 50, doc.y, { width: doc.page.width - 100, lineGap: 5 });
+
+    doc.moveDown(1.2);
+    doc.fillColor(INDIGO_LT).fontSize(12).font('Helvetica')
+       .text('You now have everything to build powerful, private, low-cost AI capability completely in-house — before the energy-driven price surge hits everyone else.', 50, doc.y, { width: doc.page.width - 100, lineGap: 5 });
 
     doc.moveDown(1.5);
     doc.fillColor(WHITE).fontSize(12).font('Helvetica-Bold').text('Questions or need help?');
@@ -529,4 +518,63 @@ async function sendPlaybookEmail(customerEmail, customerName) {
   console.log(`[playbook] Sent to ${customerEmail}`);
 }
 
-module.exports = { sendPlaybookEmail };
+
+// ── Send Package 2 (Notion AI OS) email ──────────────────────────
+async function sendPackage2PDF(customerEmail, customerName) {
+  const fs = require('fs');
+  const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-2-notion-ai-os.pdf';
+  
+  let pdfBuffer;
+  try {
+    pdfBuffer = fs.readFileSync(pdfPath);
+  } catch (err) {
+    console.error('[package2] Could not read PDF file:', err.message);
+    throw err;
+  }
+
+  const html = `
+<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
+  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
+    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
+    <div style="font-size:22px;font-weight:bold">Your Notion AI OS Template Pack is Attached</div>
+  </div>
+  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
+    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
+    <p style="margin-bottom:16px;line-height:1.7">
+      Thank you for your purchase! Your Notion AI Operating System Template Pack is attached to this email.
+    </p>
+    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
+      <strong style="color:#0A0F2C;font-size:15px">Notion AI Operating System Template Pack</strong><br>
+      <span style="color:#475569;font-size:13px">Full Build Specification v2.0 — Built from real client deployments</span>
+    </div>
+    <p style="line-height:1.7;margin-bottom:16px">
+      This is your complete AI command center for Notion. It enforces the No-Assumption Protocol, tracks real ROI, logs every debug session, and keeps your AI agents updated safely.
+    </p>
+    <p style="line-height:1.7;margin-bottom:24px">
+      If you have any questions, reply to this email or reach us on WhatsApp.
+    </p>
+    <div style="text-align:center;margin-bottom:24px">
+      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
+        Visit mycustomai.co
+      </a>
+    </div>
+    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa & The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
+  </div>
+</div>`;
+
+  const resend = getResend();
+  await resend.emails.send({
+    from: 'My Custom AI <reports@send.mycustomai.co>',
+    to:   customerEmail,
+    subject: 'Your Notion AI OS Template Pack — MyCustomAI',
+    html,
+    attachments: [{
+      filename: 'notion-ai-os-template-pack.pdf',
+      content:  pdfBuffer.toString('base64'),
+    }]
+  });
+
+  console.log(`[package2] Sent to ${customerEmail}`);
+}
+
+module.exports = { sendPlaybookEmail, buildPlaybookPDF, sendPackage2PDF };
