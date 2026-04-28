@@ -1,7 +1,7 @@
 function getStripe() {
   return require('stripe')(process.env.STRIPE_SECRET_KEY);
 }
-const { sendPlaybookEmail, sendPackage2PDF, sendPackage3PDF, sendPackage4PDF } = require('./playbook-pdf');
+const { sendPlaybookEmail, sendPackage2PDF, sendPackage3PDF, sendPackage4PDF, sendPackage5PDF } = require('./playbook-pdf');
 
 // ── Stripe webhook handler ────────────────────────────────
 // Verifies payment completed, then triggers PDF generation
@@ -64,6 +64,10 @@ async function verifyStripeWebhook(req, res) {
                        session.metadata?.price_id === 'price_1TR4bAFJIk3vLNePe3rwStRc' ||
                        session.amount_total === 13000; // $130
 
+    const isPackage5 = lineItems.some(item => item.price?.id === 'price_1TR4pTFJIk3vLNePOYFuIQEL') ||
+                       session.metadata?.price_id === 'price_1TR4pTFJIk3vLNePOYFuIQEL' ||
+                       session.amount_total === 9700; // $97
+
     if (isPackage2) {
       sendPackage2PDF(customerEmail, customerName).catch(err => {
         console.error('[webhook] Package2 email error:', err.message);
@@ -75,6 +79,10 @@ async function verifyStripeWebhook(req, res) {
     } else if (isPackage4) {
       sendPackage4PDF(customerEmail, customerName).catch(err => {
         console.error('[webhook] Package4 email error:', err.message);
+      });
+    } else if (isPackage5) {
+      sendPackage5PDF(customerEmail, customerName).catch(err => {
+        console.error('[webhook] Package5 email error:', err.message);
       });
     } else {
       // Send the free In-House AI Playbook PDF on every other purchase
