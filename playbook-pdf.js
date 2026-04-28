@@ -577,4 +577,62 @@ async function sendPackage2PDF(customerEmail, customerName) {
   console.log(`[package2] Sent to ${customerEmail}`);
 }
 
-module.exports = { sendPlaybookEmail, buildPlaybookPDF, sendPackage2PDF };
+// ── Send Package 3 (Agent Starter Kit) email ─────────────────────────
+async function sendPackage3PDF(customerEmail, customerName) {
+  const fs = require('fs');
+  const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-3-agent-starter-kit.pdf';
+
+  let pdfBuffer;
+  try {
+    pdfBuffer = fs.readFileSync(pdfPath);
+  } catch (err) {
+    console.error('[package3] Could not read PDF file:', err.message);
+    throw err;
+  }
+
+  const html = `
+<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
+  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
+    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
+    <div style="font-size:22px;font-weight:bold">Your Agent Starter Kit is Attached</div>
+  </div>
+  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
+    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
+    <p style="margin-bottom:16px;line-height:1.7">
+      Thank you for your purchase! Your Agent Starter Kit is attached to this email.
+    </p>
+    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
+      <strong style="color:#0A0F2C;font-size:15px">Agent Starter Kit: Ready-to-Deploy Open-Source Agents</strong><br>
+      <span style="color:#475569;font-size:13px">Pre-configured, battle-tested open-source agent stack — works on first run</span>
+    </div>
+    <p style="line-height:1.7;margin-bottom:16px">
+      Everything you need to go from zero to a running OpenClaw + Hermes + Qwen hybrid setup — without the hours of config hell most people hit.
+    </p>
+    <p style="line-height:1.7;margin-bottom:24px">
+      If you have any questions, reply to this email or reach us on WhatsApp.
+    </p>
+    <div style="text-align:center;margin-bottom:24px">
+      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
+        Visit mycustomai.co
+      </a>
+    </div>
+    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa &amp; The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
+  </div>
+</div>`;
+
+  const resend = getResend();
+  await resend.emails.send({
+    from: 'My Custom AI <reports@send.mycustomai.co>',
+    to:   customerEmail,
+    subject: 'Your Agent Starter Kit — MyCustomAI',
+    html,
+    attachments: [{
+      filename: 'agent-starter-kit.pdf',
+      content:  pdfBuffer.toString('base64'),
+    }]
+  });
+
+  console.log(`[package3] Sent to ${customerEmail}`);
+}
+
+module.exports = { sendPlaybookEmail, buildPlaybookPDF, sendPackage2PDF, sendPackage3PDF };
