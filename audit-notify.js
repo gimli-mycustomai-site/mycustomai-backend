@@ -43,7 +43,18 @@ async function handleAuditNotify(req, res) {
       ? '\n⚠️ <b>Flags:</b>\n' + estimate.flags.map(f => `  • ${f}`).join('\n')
       : '';
 
+    // Extract the HIGHEST number from the price display (handles ranges like "$5,000–$12,000")
+    const allPriceNums = (estimate && estimate.priceDisplay)
+      ? [...(estimate.priceDisplay.matchAll(/[\d,]+/g))].map(m => parseInt(m[0].replace(/,/g, ''), 10))
+      : [0];
+    const estimatedAmount = allPriceNums.length ? Math.max(...allPriceNums) : 0;
+    const needsEscalation = data.size === 'mid' || data.size === 'large' || estimatedAmount > 10000;
+    const escalationBanner = needsEscalation
+      ? '\n🚨 <b>ESCALATION REQUIRED — &gt;15 people or &gt;$10k — review before responding</b>\n'
+      : '';
+
     const msg = [
+      escalationBanner,
       '📋 <b>New Audit Request — MyCustomAI.co</b>',
       '',
       `👤 <b>Name:</b> ${data.name}`,
