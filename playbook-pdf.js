@@ -846,3 +846,22 @@ async function sendPackage8PDF(customerEmail, customerName) {
   console.log('[pkg8] Sent to ' + customerEmail);
 }
 module.exports = Object.assign(module.exports || {}, { sendPackage8PDF });
+
+
+async function sendPackage9PDF(customerEmail, customerName) {
+  const resend = getResend();
+  const fs = require('fs');
+  const path = require('path');
+  const pdfPath = path.join(__dirname, '../site/assets/package-9.pdf');
+  const pdfBuffer = fs.readFileSync(pdfPath);
+  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your AI Employee Blueprint Bundle is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>Build Your Own AI Employee Blueprint Bundle</strong> is attached.</p><p>This 75+ page PDF includes all 8 job description templates, KPI dashboards, escalation matrix, onboarding SOPs, offboarding protocol, and your duplicatable Notion Workspace instructions.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. &copy; 2026 MyCustomAI | mycustomai.co</p></div>`;
+  await resend.emails.send({
+    from: 'MyCustomAI <noreply@mycustomai.co>',
+    to: customerEmail,
+    subject: 'Your AI Employee Blueprint Bundle - MyCustomAI',
+    html,
+    attachments: [{ filename: 'AI-Employee-Blueprint-Bundle.pdf', content: pdfBuffer }]
+  });
+  console.log('[pkg9] Sent to ' + customerEmail);
+}
+module.exports = Object.assign(module.exports || {}, { sendPackage9PDF });
