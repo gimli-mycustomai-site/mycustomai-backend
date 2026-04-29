@@ -6,6 +6,36 @@
 
 const PDFDocument = require('pdfkit');
 const { Resend }  = require('resend');
+const { PDFDocument: PDFLib, rgb, degrees } = require('pdf-lib');
+
+async function watermarkPDF(pdfBuffer, buyerEmail) {
+  try {
+    const pdfDoc = await PDFLib.load(pdfBuffer);
+    const pages = pdfDoc.getPages();
+    const watermarkText = buyerEmail;
+
+    for (const page of pages) {
+      const { width, height } = page.getSize();
+      const step = 120;
+      for (let y = 0; y < height + width; y += step) {
+        page.drawText(watermarkText, {
+          x: -100,
+          y: y,
+          size: 11,
+          color: rgb(0.6, 0.6, 0.6),
+          opacity: 0.18,
+          rotate: degrees(45),
+        });
+      }
+    }
+
+    const watermarkedBytes = await pdfDoc.save();
+    return Buffer.from(watermarkedBytes);
+  } catch (err) {
+    console.error('[watermarkPDF] Error:', err.message);
+    return pdfBuffer;
+  }
+}
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
@@ -471,7 +501,8 @@ async function buildPlaybookPDF(customerName) {
 
 // ── Send playbook email ───────────────────────────────────────
 async function sendPlaybookEmail(customerEmail, customerName) {
-  const pdfBuffer = await buildPlaybookPDF(customerName);
+  const rawPdfBuffer = await buildPlaybookPDF(customerName);
+  const pdfBuffer = await watermarkPDF(rawPdfBuffer, customerEmail);
 
   const html = `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
@@ -523,10 +554,10 @@ async function sendPlaybookEmail(customerEmail, customerName) {
 async function sendPackage2PDF(customerEmail, customerName) {
   const fs = require('fs');
   const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-2-notion-ai-os.pdf';
-  
+
   let pdfBuffer;
   try {
-    pdfBuffer = fs.readFileSync(pdfPath);
+    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   } catch (err) {
     console.error('[package2] Could not read PDF file:', err.message);
     throw err;
@@ -584,7 +615,7 @@ async function sendPackage3PDF(customerEmail, customerName) {
 
   let pdfBuffer;
   try {
-    pdfBuffer = fs.readFileSync(pdfPath);
+    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   } catch (err) {
     console.error('[package3] Could not read PDF file:', err.message);
     throw err;
@@ -642,7 +673,7 @@ async function sendPackage4PDF(customerEmail, customerName) {
 
   let pdfBuffer;
   try {
-    pdfBuffer = fs.readFileSync(pdfPath);
+    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   } catch (err) {
     console.error('[package4] Could not read PDF file:', err.message);
     throw err;
@@ -700,7 +731,7 @@ async function sendPackage5PDF(customerEmail, customerName) {
 
   let pdfBuffer;
   try {
-    pdfBuffer = fs.readFileSync(pdfPath);
+    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   } catch (err) {
     console.error('[package5] Could not read PDF file:', err.message);
     throw err;
@@ -758,7 +789,7 @@ async function sendPackage6PDF(customerEmail, customerName) {
 
   let pdfBuffer;
   try {
-    pdfBuffer = fs.readFileSync(pdfPath);
+    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   } catch (err) {
     console.error('[package6] Could not read PDF file:', err.message);
     throw err;
@@ -816,7 +847,7 @@ async function sendPackage7PDF(customerEmail, customerName) {
   const fs = require('fs');
   const path = require('path');
   const pdfPath = path.join(__dirname, '../site/assets/package-7-debugging-playbook.pdf');
-  const pdfBuffer = fs.readFileSync(pdfPath);
+  const pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your AI Debugging Playbook is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>AI Debugging & Troubleshooting Playbook</strong> is attached.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. (c) 2026 MyCustomAI | mycustomai.co</p></div>`;
   await resend.emails.send({
     from: 'MyCustomAI <noreply@mycustomai.co>',
@@ -834,7 +865,7 @@ async function sendPackage8PDF(customerEmail, customerName) {
   const fs = require('fs');
   const path = require('path');
   const pdfPath = path.join(__dirname, '../site/assets/package-8-team-training-kit.pdf');
-  const pdfBuffer = fs.readFileSync(pdfPath);
+  const pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your Team Training & Adoption Kit is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>Team Training & Adoption Kit</strong> is attached.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. (c) 2026 MyCustomAI | mycustomai.co</p></div>`;
   await resend.emails.send({
     from: 'MyCustomAI <noreply@mycustomai.co>',
@@ -853,7 +884,7 @@ async function sendPackage9PDF(customerEmail, customerName) {
   const fs = require('fs');
   const path = require('path');
   const pdfPath = path.join(__dirname, '../site/assets/package-9.pdf');
-  const pdfBuffer = fs.readFileSync(pdfPath);
+  const pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
   const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your AI Employee Blueprint Bundle is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>Build Your Own AI Employee Blueprint Bundle</strong> is attached.</p><p>This 75+ page PDF includes all 8 job description templates, KPI dashboards, escalation matrix, onboarding SOPs, offboarding protocol, and your duplicatable Notion Workspace instructions.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. &copy; 2026 MyCustomAI | mycustomai.co</p></div>`;
   await resend.emails.send({
     from: 'MyCustomAI <noreply@mycustomai.co>',

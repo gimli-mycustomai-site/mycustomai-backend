@@ -62,11 +62,11 @@ async function verifyStripeWebhook(req, res) {
     const lineItems = session.line_items?.data || [];
     const priceId   = lineItems[0]?.price?.id || session.metadata?.price_id || '';
 
-    const isPackage2 = priceId === 'price_1TR4CeFJIk3vLNePzYNf9HTa' || amountTotal === 6700;
+    const isPackage2 = priceId === 'price_1TR4CeFJIk3vLNePzYNf9HTa';
     const isPackage3 = priceId === 'price_1TR4L9FJIk3vLNePAPcvTesI' || amountTotal === 7700;
     const isPackage4 = priceId === 'price_1TR4bAFJIk3vLNePe3rwStRc' || amountTotal === 13000;
     const isPackage5 = priceId === 'price_1TR4pTFJIk3vLNePOYFuIQEL' || amountTotal === 9700;
-    const isPackage6 = priceId === 'price_1TR4xLFJIk3vLNePHgVWrEC8';
+    const isPackage6 = priceId === 'price_1TR4xLFJIk3vLNePHgVWrEC8' || amountTotal === 6700;
     const isPackage7 = priceId === 'price_1TR57RFJIk3vLNePfyRPFRcQ' || amountTotal === 5700;
     const isPackage8 = priceId === 'price_1TR5J6FJIk3vLNeP4Yn6LSIm' || amountTotal === 14700;
     const isPackage9 = priceId === 'price_1TR5g5FJIk3vLNeP9IzUpwpT' || amountTotal === 12700;
