@@ -7,6 +7,23 @@
 const PDFDocument = require('pdfkit');
 const { Resend }  = require('resend');
 const { PDFDocument: PDFLib, rgb, degrees } = require('pdf-lib');
+const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
+
+const MCA_SQS_URL = process.env.MCA_SQS_QUEUE_URL || 'https://sqs.us-west-2.amazonaws.com/034797416133/mca-pdf-delivery';
+
+async function enqueuePdfDelivery(email, name, product, stripeEventId = '') {
+  const sqsClient = new SQSClient({
+    region: process.env.AWS_SES_REGION || 'us-west-2',
+    credentials: {
+      accessKeyId: process.env.AWS_SES_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SES_SECRET_KEY,
+    }
+  });
+  const msg = JSON.stringify({ email, name, product, stripe_event_id: stripeEventId });
+  await sqsClient.send(new SendMessageCommand({ QueueUrl: MCA_SQS_URL, MessageBody: msg }));
+  console.log(`[MCA-PDF] Enqueued ${product} for ${email}`);
+  return true;
+}
 
 async function watermarkPDF(pdfBuffer, buyerEmail) {
   try {
@@ -500,399 +517,59 @@ async function buildPlaybookPDF(customerName) {
 }
 
 // ── Send playbook email ───────────────────────────────────────
-async function sendPlaybookEmail(customerEmail, customerName) {
-  const rawPdfBuffer = await buildPlaybookPDF(customerName);
-  const pdfBuffer = await watermarkPDF(rawPdfBuffer, customerEmail);
-
-  const html = `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
-    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
-    <div style="font-size:22px;font-weight:bold">Your Free Playbook is Attached</div>
-  </div>
-  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
-    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
-    <p style="margin-bottom:16px;line-height:1.7">
-      As part of your MyCustomAI purchase, here's your complimentary copy of:
-    </p>
-    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
-      <strong style="color:#0A0F2C;font-size:15px">Building AI In-House: The Complete Playbook</strong><br>
-      <span style="color:#475569;font-size:13px">How to Build, Run &amp; Maintain Powerful AI Systems Without Keeping Experts on Retainer</span>
-    </div>
-    <p style="line-height:1.7;margin-bottom:16px">
-      This is your permanent reference guide. Use it to build your first agents, debug when things break, select the right tools, and scale your AI capability over time.
-    </p>
-    <p style="line-height:1.7;margin-bottom:24px">
-      Nainoa and the team are available if you have questions — just reply to this email or reach us on WhatsApp.
-    </p>
-    <div style="text-align:center;margin-bottom:24px">
-      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
-        Visit mycustomai.co
-      </a>
-    </div>
-    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa & The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
-  </div>
-</div>`;
-
-  const resend = getResend();
-  await resend.emails.send({
-    from: 'My Custom AI <reports@send.mycustomai.co>',
-    to:   customerEmail,
-    subject: 'Your Free Playbook: Building AI In-House (Attached)',
-    html,
-    attachments: [{
-      filename: 'mycustomai-building-ai-in-house-playbook.pdf',
-      content:  pdfBuffer.toString('base64'),
-    }]
-  });
-
-  console.log(`[playbook] Sent to ${customerEmail}`);
+async function sendPlaybookEmail(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-1', stripeEventId);
+  return { success: ok, queued: true };
 }
 
 
 // ── Send Package 2 (Notion AI OS) email ──────────────────────────
-async function sendPackage2PDF(customerEmail, customerName) {
-  const fs = require('fs');
-  const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-2-notion-ai-os.pdf';
-
-  let pdfBuffer;
-  try {
-    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  } catch (err) {
-    console.error('[package2] Could not read PDF file:', err.message);
-    throw err;
-  }
-
-  const html = `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
-    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
-    <div style="font-size:22px;font-weight:bold">Your Notion AI OS Template Pack is Attached</div>
-  </div>
-  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
-    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
-    <p style="margin-bottom:16px;line-height:1.7">
-      Thank you for your purchase! Your Notion AI Operating System Template Pack is attached to this email.
-    </p>
-    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
-      <strong style="color:#0A0F2C;font-size:15px">Notion AI Operating System Template Pack</strong><br>
-      <span style="color:#475569;font-size:13px">Full Build Specification v2.0 — Built from real client deployments</span>
-    </div>
-    <p style="line-height:1.7;margin-bottom:16px">
-      This is your complete AI command center for Notion. It enforces the No-Assumption Protocol, tracks real ROI, logs every debug session, and keeps your AI agents updated safely.
-    </p>
-    <p style="line-height:1.7;margin-bottom:24px">
-      If you have any questions, reply to this email or reach us on WhatsApp.
-    </p>
-    <div style="text-align:center;margin-bottom:24px">
-      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
-        Visit mycustomai.co
-      </a>
-    </div>
-    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa & The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
-  </div>
-</div>`;
-
-  const resend = getResend();
-  await resend.emails.send({
-    from: 'My Custom AI <reports@send.mycustomai.co>',
-    to:   customerEmail,
-    subject: 'Your Notion AI OS Template Pack — MyCustomAI',
-    html,
-    attachments: [{
-      filename: 'notion-ai-os-template-pack.pdf',
-      content:  pdfBuffer.toString('base64'),
-    }]
-  });
-
-  console.log(`[package2] Sent to ${customerEmail}`);
+async function sendPackage2PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-2', stripeEventId);
+  return { success: ok, queued: true };
 }
 
 // ── Send Package 3 (Agent Starter Kit) email ─────────────────────────
-async function sendPackage3PDF(customerEmail, customerName) {
-  const fs = require('fs');
-  const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-3-agent-starter-kit.pdf';
-
-  let pdfBuffer;
-  try {
-    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  } catch (err) {
-    console.error('[package3] Could not read PDF file:', err.message);
-    throw err;
-  }
-
-  const html = `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
-    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
-    <div style="font-size:22px;font-weight:bold">Your Agent Starter Kit is Attached</div>
-  </div>
-  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
-    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
-    <p style="margin-bottom:16px;line-height:1.7">
-      Thank you for your purchase! Your Agent Starter Kit is attached to this email.
-    </p>
-    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
-      <strong style="color:#0A0F2C;font-size:15px">Agent Starter Kit: Ready-to-Deploy Open-Source Agents</strong><br>
-      <span style="color:#475569;font-size:13px">Pre-configured, battle-tested open-source agent stack — works on first run</span>
-    </div>
-    <p style="line-height:1.7;margin-bottom:16px">
-      Everything you need to go from zero to a running OpenClaw + Hermes + Qwen hybrid setup — without the hours of config hell most people hit.
-    </p>
-    <p style="line-height:1.7;margin-bottom:24px">
-      If you have any questions, reply to this email or reach us on WhatsApp.
-    </p>
-    <div style="text-align:center;margin-bottom:24px">
-      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
-        Visit mycustomai.co
-      </a>
-    </div>
-    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa &amp; The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
-  </div>
-</div>`;
-
-  const resend = getResend();
-  await resend.emails.send({
-    from: 'My Custom AI <reports@send.mycustomai.co>',
-    to:   customerEmail,
-    subject: 'Your Agent Starter Kit — MyCustomAI',
-    html,
-    attachments: [{
-      filename: 'agent-starter-kit.pdf',
-      content:  pdfBuffer.toString('base64'),
-    }]
-  });
-
-  console.log(`[package3] Sent to ${customerEmail}`);
+async function sendPackage3PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-3', stripeEventId);
+  return { success: ok, queued: true };
 }
 
 // ── Send Package 4 (Industry-Specific AI Playbook Editions) email ────────────
-async function sendPackage4PDF(customerEmail, customerName) {
-  const fs = require('fs');
-  const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-4-industry-playbooks.pdf';
-
-  let pdfBuffer;
-  try {
-    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  } catch (err) {
-    console.error('[package4] Could not read PDF file:', err.message);
-    throw err;
-  }
-
-  const html = `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
-    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
-    <div style="font-size:22px;font-weight:bold">Your Industry-Specific AI Playbook Editions are Attached</div>
-  </div>
-  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
-    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
-    <p style="margin-bottom:16px;line-height:1.7">
-      Thank you for your purchase! Your Industry-Specific AI Playbook Editions are attached to this email.
-    </p>
-    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
-      <strong style="color:#0A0F2C;font-size:15px">Industry-Specific AI Playbook Editions</strong><br>
-      <span style="color:#475569;font-size:13px">6 Complete Standalone Editions — Built from Real 2026 Deployments</span>
-    </div>
-    <p style="line-height:1.7;margin-bottom:16px">
-      All 6 editions are inside: E-Commerce &amp; Retail, Service Businesses, Consultants &amp; Coaches, Real Estate, Local &amp; Tourism, and Health &amp; Wellness. Each edition includes 8–12 ready-to-deploy agents with OpenClaw/Hermes config snippets, ROI benchmarks, and compliance guardrails.
-    </p>
-    <p style="line-height:1.7;margin-bottom:24px">
-      If you have any questions, reply to this email or reach us on WhatsApp.
-    </p>
-    <div style="text-align:center;margin-bottom:24px">
-      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
-        Visit mycustomai.co
-      </a>
-    </div>
-    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa &amp; The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
-  </div>
-</div>`;
-
-  const resend = getResend();
-  await resend.emails.send({
-    from: 'My Custom AI <reports@send.mycustomai.co>',
-    to:   customerEmail,
-    subject: 'Your Industry-Specific AI Playbook Editions — MyCustomAI',
-    html,
-    attachments: [{
-      filename: 'industry-specific-ai-playbook-editions.pdf',
-      content:  pdfBuffer.toString('base64'),
-    }]
-  });
-
-  console.log(`[package4] Sent to ${customerEmail}`);
+async function sendPackage4PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-4', stripeEventId);
+  return { success: ok, queued: true };
 }
 
 // ── Send Package 5 (Prompt & SOP Mastery Library) email ──────────────────────
-async function sendPackage5PDF(customerEmail, customerName) {
-  const fs = require('fs');
-  const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-5-prompt-sop-library.pdf';
-
-  let pdfBuffer;
-  try {
-    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  } catch (err) {
-    console.error('[package5] Could not read PDF file:', err.message);
-    throw err;
-  }
-
-  const html = `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
-    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
-    <div style="font-size:22px;font-weight:bold">Your Prompt &amp; SOP Mastery Library is Attached</div>
-  </div>
-  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
-    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
-    <p style="margin-bottom:16px;line-height:1.7">
-      Thank you for your purchase! Your Prompt &amp; SOP Mastery Library is attached to this email.
-    </p>
-    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
-      <strong style="color:#0A0F2C;font-size:15px">Prompt &amp; SOP Mastery Library</strong><br>
-      <span style="color:#475569;font-size:13px">120+ Battle-Tested Prompts · 25 Complete SOPs · v2.0</span>
-    </div>
-    <p style="line-height:1.7;margin-bottom:16px">
-      Every prompt includes effectiveness ratings from real client deployments and is pre-loaded with the No-Assumption Protocol, Primer Phase, and 4-Step Debugging. Import directly into your Notion AI OS or Agent Starter Kit using the instructions inside.
-    </p>
-    <p style="line-height:1.7;margin-bottom:24px">
-      If you have any questions, reply to this email or reach us on WhatsApp.
-    </p>
-    <div style="text-align:center;margin-bottom:24px">
-      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
-        Visit mycustomai.co
-      </a>
-    </div>
-    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa &amp; The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
-  </div>
-</div>`;
-
-  const resend = getResend();
-  await resend.emails.send({
-    from: 'My Custom AI <reports@send.mycustomai.co>',
-    to:   customerEmail,
-    subject: 'Your Prompt & SOP Mastery Library — MyCustomAI',
-    html,
-    attachments: [{
-      filename: 'prompt-sop-mastery-library.pdf',
-      content:  pdfBuffer.toString('base64'),
-    }]
-  });
-
-  console.log(`[package5] Sent to ${customerEmail}`);
+async function sendPackage5PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-5', stripeEventId);
+  return { success: ok, queued: true };
 }
 
 // ── Send Package 6 (Monthly AI Update & Agent Self-Maintenance Infrastructure) email ──
-async function sendPackage6PDF(customerEmail, customerName) {
-  const fs = require('fs');
-  const pdfPath = '/Users/naimini/Documents/mycustomai-co/site/assets/package-6-self-maintenance.pdf';
-
-  let pdfBuffer;
-  try {
-    pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  } catch (err) {
-    console.error('[package6] Could not read PDF file:', err.message);
-    throw err;
-  }
-
-  const html = `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-  <div style="background:linear-gradient(135deg,#0A0F2C,#6366F1);padding:32px;color:white;border-radius:8px 8px 0 0">
-    <div style="font-size:11px;letter-spacing:2px;color:#818CF8;margin-bottom:8px">MYCUSTOMAI.CO</div>
-    <div style="font-size:22px;font-weight:bold">Your AI Self-Maintenance Infrastructure is Attached</div>
-  </div>
-  <div style="padding:32px;background:#f8fafc;border-radius:0 0 8px 8px">
-    <h2 style="color:#0A0F2C;margin-bottom:16px">Hi ${customerName || 'there'},</h2>
-    <p style="margin-bottom:16px;line-height:1.7">
-      Thank you for your purchase! Your Monthly AI Update &amp; Agent Self-Maintenance Infrastructure is attached to this email.
-    </p>
-    <div style="background:#EEF2FF;border-left:4px solid #6366F1;padding:16px;border-radius:0 8px 8px 0;margin-bottom:24px">
-      <strong style="color:#0A0F2C;font-size:15px">Monthly AI Update &amp; Agent Self-Maintenance Infrastructure</strong><br>
-      <span style="color:#475569;font-size:13px">The Complete Semi-Autonomous Maintenance System — v2.0</span>
-    </div>
-    <p style="line-height:1.7;margin-bottom:16px">
-      Inside you'll find the complete 5-step maintenance SOP, rollback protocols, the 5 universal test cases, Human Approval Form template, and ready-to-use prompts for every maintenance scenario.
-    </p>
-    <p style="line-height:1.7;margin-bottom:24px">
-      If you have any questions, reply to this email or reach us on WhatsApp.
-    </p>
-    <div style="text-align:center;margin-bottom:24px">
-      <a href="https://mycustomai.co" style="background:#6366F1;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
-        Visit mycustomai.co
-      </a>
-    </div>
-    <p style="color:#94a3b8;font-size:12px;margin-top:24px">— Nainoa &amp; The MyCustomAI Team · mycustomai.co · WhatsApp: +1 (808) 936-4170</p>
-  </div>
-</div>`;
-
-  const resend = getResend();
-  await resend.emails.send({
-    from: 'My Custom AI <reports@send.mycustomai.co>',
-    to:   customerEmail,
-    subject: 'Your AI Self-Maintenance Infrastructure — MyCustomAI',
-    html,
-    attachments: [{
-      filename: 'ai-self-maintenance-infrastructure.pdf',
-      content:  pdfBuffer.toString('base64'),
-    }]
-  });
-
-  console.log(`[package6] Sent to ${customerEmail}`);
+async function sendPackage6PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-6', stripeEventId);
+  return { success: ok, queued: true };
 }
 
 module.exports = { sendPlaybookEmail, buildPlaybookPDF, sendPackage2PDF, sendPackage3PDF, sendPackage4PDF, sendPackage5PDF, sendPackage6PDF };
 
-async function sendPackage7PDF(customerEmail, customerName) {
-  const resend = getResend();
-  const fs = require('fs');
-  const path = require('path');
-  const pdfPath = path.join(__dirname, '../site/assets/package-7-debugging-playbook.pdf');
-  const pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your AI Debugging Playbook is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>AI Debugging & Troubleshooting Playbook</strong> is attached.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. (c) 2026 MyCustomAI | mycustomai.co</p></div>`;
-  await resend.emails.send({
-    from: 'MyCustomAI <noreply@mycustomai.co>',
-    to: customerEmail,
-    subject: 'Your AI Debugging & Troubleshooting Playbook - MyCustomAI',
-    html,
-    attachments: [{ filename: 'AI-Debugging-Playbook.pdf', content: pdfBuffer }]
-  });
-  console.log('[pkg7] Sent to ' + customerEmail);
+async function sendPackage7PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-7', stripeEventId);
+  return { success: ok, queued: true };
 }
 module.exports = Object.assign(module.exports || {}, { sendPackage7PDF });
 
-async function sendPackage8PDF(customerEmail, customerName) {
-  const resend = getResend();
-  const fs = require('fs');
-  const path = require('path');
-  const pdfPath = path.join(__dirname, '../site/assets/package-8-team-training-kit.pdf');
-  const pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your Team Training & Adoption Kit is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>Team Training & Adoption Kit</strong> is attached.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. (c) 2026 MyCustomAI | mycustomai.co</p></div>`;
-  await resend.emails.send({
-    from: 'MyCustomAI <noreply@mycustomai.co>',
-    to: customerEmail,
-    subject: 'Your Team Training & Adoption Kit - MyCustomAI',
-    html,
-    attachments: [{ filename: 'Team-Training-Adoption-Kit.pdf', content: pdfBuffer }]
-  });
-  console.log('[pkg8] Sent to ' + customerEmail);
+async function sendPackage8PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-8', stripeEventId);
+  return { success: ok, queued: true };
 }
 module.exports = Object.assign(module.exports || {}, { sendPackage8PDF });
 
 
-async function sendPackage9PDF(customerEmail, customerName) {
-  const resend = getResend();
-  const fs = require('fs');
-  const path = require('path');
-  const pdfPath = path.join(__dirname, '../site/assets/package-9.pdf');
-  const pdfBuffer = await watermarkPDF(fs.readFileSync(pdfPath), customerEmail);
-  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;"><h2 style="color:#6366f1;">Your AI Employee Blueprint Bundle is ready!</h2><p>Hi ${customerName || 'there'},</p><p>Thank you for your purchase. Your <strong>Build Your Own AI Employee Blueprint Bundle</strong> is attached.</p><p>This 75+ page PDF includes all 8 job description templates, KPI dashboards, escalation matrix, onboarding SOPs, offboarding protocol, and your duplicatable Notion Workspace instructions.</p><p style="color:#64748b;font-size:0.85em;">For personal use only. &copy; 2026 MyCustomAI | mycustomai.co</p></div>`;
-  await resend.emails.send({
-    from: 'MyCustomAI <noreply@mycustomai.co>',
-    to: customerEmail,
-    subject: 'Your AI Employee Blueprint Bundle - MyCustomAI',
-    html,
-    attachments: [{ filename: 'AI-Employee-Blueprint-Bundle.pdf', content: pdfBuffer }]
-  });
-  console.log('[pkg9] Sent to ' + customerEmail);
+async function sendPackage9PDF(customerEmail, customerName, stripeEventId = '') {
+  const ok = await enqueuePdfDelivery(customerEmail, customerName, 'package-9', stripeEventId);
+  return { success: ok, queued: true };
 }
 module.exports = Object.assign(module.exports || {}, { sendPackage9PDF });
