@@ -73,3 +73,5 @@
 4. **Email Capture**: main.js → Google Apps Script (unchanged, already secure)
 
 Your email system is now production-ready for thousands of users! 🎉
+
+[2026-04-29 17:21] MCA S3+Lambda async PDF delivery complete. S3: mycustomai-pdfs (8 static PDFs: packages 2-9). Lambda: mca-pdf-delivery-worker (Python 3.12, reuses atl-pdf-deps layer). Package 1 generated inline by Lambda via reportlab. SQS: mca-pdf-delivery + mca-pdf-delivery-failed DLQ. stripe-webhook.js rewritten — enqueuePdfDelivery() replaces all sendPackageNPDF() calls. Render: aws-sdk + SQS env vars added. Git commit 95c17dd pushed. ZERO ATL data mixed in.
