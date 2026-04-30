@@ -1,15 +1,33 @@
 function getStripe() {
   return require('stripe')(process.env.STRIPE_SECRET_KEY);
 }
-const {
-  sendPlaybookEmail,
-  sendPackage2PDF, sendPackage3PDF, sendPackage4PDF,
-  sendPackage5PDF, sendPackage6PDF, sendPackage7PDF,
-  sendPackage8PDF, sendPackage9PDF
-} = require('./playbook-pdf');
+
+// ── SQS client for async PDF delivery ───────────────
+const AWS = require('aws-sdk');
+const sqs = new AWS.SQS({
+  accessKeyId:     process.env.AWS_SES_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SES_SECRET_KEY,
+  region:          process.env.AWS_SES_REGION || 'us-west-2'
+});
+const MCA_QUEUE_URL = 'https://sqs.us-west-2.amazonaws.com/034797416133/mca-pdf-delivery';
+
+function enqueuePdfDelivery(email, name, productId, stripeEventId) {
+  const params = {
+    QueueUrl:    MCA_QUEUE_URL,
+    MessageBody: JSON.stringify({
+      email,
+      name:            name || 'Valued Customer',
+      product:         productId,
+      stripe_event_id: stripeEventId || ''
+    })
+  };
+  return sqs.sendMessage(params).promise()
+    .then(() => console.log(`[webhook] Queued async delivery: ${productId} → ${email}`))
+    .catch(err => console.error(`[webhook] SQS enqueue failed for ${email}:`, err.message));
+}
 
 // ── Stripe webhook handler ────────────────────────────────
-// Verifies payment completed, then triggers PDF generation
+// Verifies payment completed, then enqueues PDF delivery to SQS → Lambda
 async function verifyStripeWebhook(req, res) {
   const stripe = getStripe();
   const sig = req.headers['stripe-signature'];
@@ -22,6 +40,9 @@ async function verifyStripeWebhook(req, res) {
     console.error('[webhook] Signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+
+  // Return 200 to Stripe FIRST — async delivery handles the rest
+  res.json({ received: true });
 
   // Handle checkout.session.completed
   if (event.type === 'checkout.session.completed') {
@@ -53,7 +74,7 @@ async function verifyStripeWebhook(req, res) {
 
     if (!customerEmail) {
       console.error('[webhook] No email in session');
-      return res.json({ received: true });
+      return;
     }
 
     console.log(`[webhook] Verified payment from ${customerEmail} — plan: ${plan} — amount: ${amountTotal}`);
@@ -71,47 +92,16 @@ async function verifyStripeWebhook(req, res) {
     const isPackage8 = priceId === 'price_1TR5J6FJIk3vLNeP4Yn6LSIm' || amountTotal === 14700;
     const isPackage9 = priceId === 'price_1TR5g5FJIk3vLNeP9IzUpwpT' || amountTotal === 12700;
 
-    if (isPackage9) {
-      sendPackage9PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package9 email error:', err.message);
-      });
-    } else if (isPackage8) {
-      sendPackage8PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package8 email error:', err.message);
-      });
-    } else if (isPackage7) {
-      sendPackage7PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package7 email error:', err.message);
-      });
-    } else if (isPackage6) {
-      sendPackage6PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package6 email error:', err.message);
-      });
-    } else if (isPackage5) {
-      sendPackage5PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package5 email error:', err.message);
-      });
-    } else if (isPackage4) {
-      sendPackage4PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package4 email error:', err.message);
-      });
-    } else if (isPackage3) {
-      sendPackage3PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package3 email error:', err.message);
-      });
-    } else if (isPackage2) {
-      sendPackage2PDF(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Package2 email error:', err.message);
-      });
-    } else {
-      // Default: send the free In-House AI Playbook PDF
-      sendPlaybookEmail(customerEmail, customerName).catch(err => {
-        console.error('[webhook] Playbook email error:', err.message);
-      });
-    }
+    if      (isPackage9) enqueuePdfDelivery(customerEmail, customerName, 'package-9', event.id);
+    else if (isPackage8) enqueuePdfDelivery(customerEmail, customerName, 'package-8', event.id);
+    else if (isPackage7) enqueuePdfDelivery(customerEmail, customerName, 'package-7', event.id);
+    else if (isPackage6) enqueuePdfDelivery(customerEmail, customerName, 'package-6', event.id);
+    else if (isPackage5) enqueuePdfDelivery(customerEmail, customerName, 'package-5', event.id);
+    else if (isPackage4) enqueuePdfDelivery(customerEmail, customerName, 'package-4', event.id);
+    else if (isPackage3) enqueuePdfDelivery(customerEmail, customerName, 'package-3', event.id);
+    else if (isPackage2) enqueuePdfDelivery(customerEmail, customerName, 'package-2', event.id);
+    else                 enqueuePdfDelivery(customerEmail, customerName, 'package-1', event.id);
   }
-
-  res.json({ received: true });
 }
 
 module.exports = { verifyStripeWebhook };
