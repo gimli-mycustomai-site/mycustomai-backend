@@ -3,11 +3,14 @@ const express    = require('express');
 const cors       = require('cors');
 const bodyParser = require('body-parser');
 const { verifyStripeWebhook }   = require('./stripe-webhook');
-const { handleTestimonial }     = require('./testimonials');
+const { handleTestimonial, handleInviteCheck } = require('./testimonials');
 const { handleAuditNotify }     = require('./audit-notify');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+
+// Render sits one proxy hop in front — needed for per-IP rate limiting
+app.set('trust proxy', 1);
 
 // ── CORS — allow mycustomai.co ────────────────────────────
 app.use(cors({
@@ -51,6 +54,9 @@ app.post('/webhook/stripe', async (req, res) => {
 
 // ── Audit form notify → Telegram Business Meetings ──────────
 app.post('/api/audit-notify', handleAuditNotify);
+
+// ── Review invites (invite-only testimonials) ─────────────
+app.get('/api/review-invite/check', handleInviteCheck);
 
 // ── Submit testimonial → GitHub → live site ───────────────
 app.post('/api/testimonial', handleTestimonial);

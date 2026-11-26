@@ -21,7 +21,9 @@ function telegramSend(text) {
     }, (res) => {
       let d = '';
       res.on('data', c => d += c);
-      res.on('end', () => resolve(JSON.parse(d)));
+      res.on('end', () => {
+        try { resolve(JSON.parse(d)); } catch (e) { reject(new Error(`Telegram non-JSON response (${res.statusCode})`)); }
+      });
     });
     req.on('error', reject);
     req.write(payload);
@@ -96,4 +98,4 @@ async function handleAuditNotify(req, res) {
   }
 }
 
-module.exports = { handleAuditNotify };
+module.exports = { handleAuditNotify, telegramSend };
